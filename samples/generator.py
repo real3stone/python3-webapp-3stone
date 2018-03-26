@@ -1,4 +1,6 @@
-﻿# 寻找最大最小值
+﻿# 【高级特性】 练习
+
+# 寻找最大最小值
 def findMinAndMax(L):
 	if len(L) == 0:
 		return None, None
