@@ -3,11 +3,13 @@
 # !usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-' a test module '  # 模板的文档注释
+'a test module'  # 模板的文档注释
 
-__author__ = 'real3stone' # 变量__author__ 记录作者
+__author__ = 'real3stone'  # 变量__author__ 记录作者
+
 
 import sys  # 导入模块
+
 
 def test():
 	args = sys.argv  
