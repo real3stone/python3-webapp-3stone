@@ -1,4 +1,4 @@
-# [join]
+# 莫烦Python练习代码
 import threading
 import time
 from queue import Queue
