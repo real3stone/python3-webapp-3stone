@@ -1,0 +1,24 @@
+<!--登录表单的模板-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Please Sign In</title>
+</head>
+<body>
+    {% if message %}
+    <p style="color:red">{{message}}</p>
+    {% endif %}
+    <form action="/signin" method="post">
+        <legend>Please sign in:</legend>
+        <p><input name="username" placeholder="Username" value="{{username}}" </p>
+        <p><input name="password" placeholder="Password" type="password"> </p>
+        <p><button type="submit">Sign In</button></p>
+    </form>
+</body>
+</html>
+
+<!--
+在Jinja2模板中，我们用{{ name }}表示一个需要替换的变量。
+很多时候，还需要循环、条件判断等指令语句，在Jinja2中，用{% ... %}表示指令
+-->
