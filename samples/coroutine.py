@@ -15,27 +15,41 @@
 # Python对协程的支持是通过generator(生成器)实现的
 
 
+# yield 和 send 都可以理解为挂起(暂停)
+# 分为两步执行：(以yield为例)
+# 1、yield 先传值到send()挂起的地方，yield挂起，
+# 2、等send()执行一次循环后返回，yield再执行其后的代码
+# 3、知道又到yield，回步骤1
+
+
 # 此函数时一个generator
 def consumer():
     r = ''
     while True:
-        n = yield r  # 通过yield拿到消息,处理完,又通过yield返回
-        if not n:
+        # 1、给调用者返回r到send(),挂起 2、等send()执行一个循环后,接受其发回的值，赋给n
+        n = yield r
+        if not n:   # 调用者的send()函数没有发送回值
             return
         print('[CONSUMER] Consuming %s...' % n)
         r = '200 OK'
 
 
 def produce(c):
-    c.send(None)  # 启动生成器
+    c.send(None)  # 启动生成器(参数必须是None，否则启动需要用next()函数)
     n = 0
     while n < 5:
-        n += 1
+        n += 1  # 生产东西
         print('[PRODUCE Producing %s...' % n)
-        r = c.send(n)  # 切换到consumer(),使其通过yield拿到消息,等返回后再赋值给r
+        # 1、给consumer()中yield挂起的地方返回r,挂起 2、等yield()执行一个循环后,接受其发回的值，赋给r
+        r = c.send(n)
         print('[PRODUCE] Consumer return: %s' % r)
     c.close()  # produce决定不生产了，通过close()关闭consumer()
 
-c = consumer()
+c = consumer()  # c是消费者对象，传入produce()
 produce(c)
+
+# 整个流程无锁，由一个线程执行，由consumer() 和 produce()协同完成，故称为协程
+
+# 此时还没有实现多线程吧，不就是在两个函数里交替顺序执行吗？？？
+
 

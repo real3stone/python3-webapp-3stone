@@ -8,6 +8,7 @@ import sqlite3
 
 
 db_file = os.path.join(os.path.dirname(__file__), 'test.db')
+
 if os.path.isfile(db_file):
     os.remove(db_file)
 
@@ -28,7 +29,7 @@ def get_score_in(low, high):
     try:
         conn = sqlite3.connect(db_file)
         cursor = conn.cursor()
-        cursor.execute(r"select * from user where score >= ? and score <= ? order by score", (low, high))
+        cursor.execute(r'select * from user where score >= ? and score <= ? order by score', (low, high))
         values = cursor.fetchall()
         name = [i[1] for i in values]  # tuple操作--取出第二个元素组成list
     except Exception as e:
@@ -48,6 +49,9 @@ assert get_score_in(60, 100) == ['Bart', 'Lisa', 'Adam']
 print('Pass')  # 测试成功
 
 
+# 由于Python的DB-API定义都是通用的，所以，操作MySQL的数据库代码和SQLite类似
+# 1、把sqlite3 换成 mysql.connector
+# 2、mysql的占位符是 %s，而非？
 
 
 

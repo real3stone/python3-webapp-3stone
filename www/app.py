@@ -5,7 +5,7 @@
 
 import logging; logging.basicConfig(level=logging.INFO)
 
-import asyncio, os, json, time
+import asyncio,os,json,time
 from datetime import datetime
 
 from aiohttp import web
@@ -13,7 +13,7 @@ from aiohttp import web
 
 def index(request):
     # 不加headers参数，会以二进制文件的形式下载文件，而非生成网页（之后看看headers具体文档）
-    return web.Response(body=b'<h1>Awesome</h1>', headers={'content-type': 'text/html'})
+    return web.Response(body=b'<h1>Awesome</h1>', content_type='text/html')
 
 
 @asyncio.coroutine
