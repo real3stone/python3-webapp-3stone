@@ -12,7 +12,7 @@ from aiohttp import web
 
 
 def index(request):
-    # 不加headers参数，会以二进制文件的形式下载文件，而非生成网页（之后看看headers具体文档）
+    # 不加content_type参数，会以二进制文件的形式下载文件，而非生成网页（之后看看具体文档）
     return web.Response(body=b'<h1>Awesome</h1>', content_type='text/html')
 
 
@@ -28,8 +28,6 @@ def init(loop):
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop))
 loop.run_forever()
-
-
 
 
 

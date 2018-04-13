@@ -30,15 +30,15 @@ if __name__ == '__main__':
 	test()
 	
 
-
-# private 函数 
-
+# private 函数
 def _private_1(name):
 	return 'Hello, %s' % name
 
+
 def _private_2(name):
 	return 'Hi, %s' % name
-	
+
+
 def greeting(name):
 	if len(name) > 3:
 		return _private_1(name)
@@ -49,4 +49,3 @@ def greeting(name):
 	
 	
 
-	

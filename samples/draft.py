@@ -1,40 +1,32 @@
-# 莫烦Python练习代码
-import threading
-import time
-from queue import Queue
+from flask import Flask, request, render_template
+
+app = Flask(__name__)
 
 
-def job(l, q):
-    for i in range(len(l)):
-        l[i] **= 2
-    return l
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    return render_template('home.html')
 
 
-def thread_job():
-    # print('This is a added Thread, number is %s' % threading.current_thread())
-    print('T1 start\n')
-    for i in range(10):
-        time.sleep(0.1)
-    print('T1 finish\n')
+@app.route('/signin', methods=['GET'])
+def signin_form():
+    return render_template('form.html')
 
 
-def T2_job():
-    print('T2 start\n')
-    print('T2 finish\n')
+@app.route('/signin', methods=['POST'])
+def signin():
+    username = request.form['username']
+    password = request.form['password']
+    if username == 'admin' and password == 'password':
+        return render_template('sign-ok.html', username=username)
 
-
-def main():
-    added_thread = threading.Thread(target=thread_job, name='T1')
-    thread2 = threading.Thread(target=T2_job )
-    added_thread.start()
-    thread2.start()
-    thread2.join()
-    added_thread.join()
-    print('all done\n')
-    # print(threading.active_count())
-    # print(threading.enumerate())
-    # print(threading.current_thread())
-
+    else:  # 登录失败则还在form.html页面
+        return render_template('form.html', message='Bad username or password', username=username)
 
 if __name__ == '__main__':
-    main()
+    app.run()
+
+
+
+
+

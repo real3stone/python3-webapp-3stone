@@ -14,7 +14,7 @@
 
 import aiomysql
 import logging; logging.basicConfig(level=logging.INFO)
-import asyncio,os,json,time
+import asyncio, os, json, time
 
 
 # 廖大部分代码没有粘在教程里； 记录日志？？
@@ -87,7 +87,6 @@ def create_args_string(num):
 
 # Field及其子类
 class Field(object):
-
     def __init__(self, name, column_type, primary_key, default):
         self.name = name
         self.column_type = column_type
@@ -100,9 +99,8 @@ class Field(object):
 
 # 映射varchar的StringField
 class StringField(Field):
-
-    def __init__(self, name=None, primary_key=False, default=None,ddl='varchar(100)'):
-        super().__init__(name, ddl, primary_key, default)
+    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
+        super().__init__(name, ddl, primary_key, default)  # 多重继承 初始化
 
 
 class BooleanField(Field):
@@ -129,19 +127,22 @@ class TextField(Field):
 class ModelMetaclass(type):
 
     def __new__(cls, name, bases, attrs):
+
         # 排除Model类本身
-        if name=='Model':
+        if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
+
         # 获取table名称：
         tableName = attrs.get('__table__', None) or name
         logging.info('found model: %s (table: %s)' % (name, tableName))
+
         # 获取所有的Field和主键名：
         mappings = dict()
         fields = []
         primaryKey = None
         for k, v in attrs.items():
             if isinstance(v, Field):
-                logging.info(' found mapping: %s ==> %s' % (k,v))
+                logging.info(' found mapping: %s ==> %s' % (k, v))
                 mappings[k] = v
                 if v.primary_key:
                     # 找到主键
@@ -173,11 +174,13 @@ class ModelMetaclass(type):
 
 
 # 首先定义所有ORM映射的基类
-# Model从dict继承，所以具备所有dict的功能，同时实现方法__getattr__()和__setattr__()
+# Model从dict继承，所以具备所有<dict的功能>，同时实现方法__getattr__()和__setattr__()
 # 因此可以向应用普通字段那样写，eg:user['id'] 和user.id 均输出123
 class Model(dict, metaclass=ModelMetaclass):
 
-    def __init__(self, **kw):
+    # 【构造方法】:当实例被初始化时被调用。注意名字前后的双下划线，这是表明这个属
+    # 性或方法对Python有特殊意义，但是允许用户自行定义。你自己取名时不应该用这种格式
+    def __init__(self, **kw):  # ？？？？
         super(Model, self).__init__(**kw)
 
     def __getattr__(self, key):
@@ -189,6 +192,7 @@ class Model(dict, metaclass=ModelMetaclass):
     def __setattr__(self, key, value):
         self[key] = value
 
+    # 【实例方法】:第一个参数总是self，就是这个实例对象
     def getValue(self, key):
         return getattr(self, key, None)
 
@@ -202,7 +206,7 @@ class Model(dict, metaclass=ModelMetaclass):
                 setattr(self, key, value)
         return value
 
-    @classmethod
+    @classmethod   # 【类方法】:被所有此类的实例所共用，第一个参数cls就是这个<类 对象>
     async def findAll(cls, where=None, args=None, **kw):
         ' find objects by where clause. '
         sql = [cls.__select__]

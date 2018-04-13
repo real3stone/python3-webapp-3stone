@@ -1,6 +1,9 @@
-# 【WSGI: web service gateway interface 】练习
+# 【WSGI接口: web service gateway interface 】
+# 封装TCP连接、HTTP原始请求和响应格式，使我们专心于Python编写web业务
 
-# WSGI接口实现非常简单，只需要开发者实现一个函数即可相应HTTP请求
+# 其实一个web app可以理解为就是写一个WSGI的处理函数
+
+# WSGI接口实现非常简单，只需要开发者实现一个函数即可响应HTTP请求
 
 
 # 本代码是请求部分，server部分在wsgi_server.py中

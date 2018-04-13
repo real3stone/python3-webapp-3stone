@@ -25,7 +25,8 @@ def signin():
     password = request.form['password']
     if username == 'admin' and password == 'password':
         return render_template('sign-ok.html', username=username)
-    return render_template('form.html', message='Bad username or password', username=username)
+    else:
+        return render_template('form.html', message='Bad username or password', username=username)
 
 if __name__ == '__main__':
     app.run()
