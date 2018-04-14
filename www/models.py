@@ -12,6 +12,7 @@ import time, uuid
 from orm import Model, StringField, BooleanField, FloatField, TextField
 
 
+# 根据当前时间设置新id
 def next_id():
     return '%015d%s000' % (int(time.time() * 1000), uuid.uuid4().hex)
 

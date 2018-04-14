@@ -24,7 +24,7 @@ Base = declarative_base()
 class User(Base):
     # 表的名字：
     __tablename__ = 'user'
-    # 表的结构：
+    # 表的结构：（类属性）
     id = Column(String(20), primary_key=True)
     name = Column(String(20))
     # 一对多
@@ -50,7 +50,6 @@ DBSession = sessionmaker(bind=engine)  # bind:会话关联数据库连接engine
 
 # 插入操作只能执行一次
 """
-
 # 由于有了ORM，我们想数据库表中添加一行记录，可以视为添加一个user对象：
 
 # 创建session对象

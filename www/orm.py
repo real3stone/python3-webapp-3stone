@@ -23,17 +23,16 @@ def log(sql, args=()):
 
 
 # 创建连接池
-@asyncio.coroutine
-def create_pool(loop, **kw):
+async def create_pool(loop, **kw):
     logging.info('create database connection pool...')
     global __pool
-    __pool = yield from aiomysql.create_pool(
+    __pool = await aiomysql.create_pool(
         host=kw.get('host', 'localhost'),
         port=kw.get('port', 3306),
         user=kw['user'],
-        password=kw['123456'],
-        db=kw['db'],
-        charset=kw.get('charset', 'utf-8'),
+        password=kw['password'],
+        db=kw['database'],
+        charset=kw.get('charset', 'utf8'),
         autocommit=kw.get('autocommit', True),
         maxsize=kw.get('maxsize', 10),
         minsize=kw.get('minsize', 1),
@@ -41,19 +40,25 @@ def create_pool(loop, **kw):
     )
 
 
+# 关闭连接池（根据讨论自加）
+async def destroy_pool():
+    global __pool
+    if __pool is not None:
+        __pool.close()
+        await __pool.wait_closed()
+
+
 # 封装select语句
-@asyncio.coroutine
-def select(sql, args, size=None):
+async def select(sql, args, size=None):
     log(sql, args)
     global __pool
-    with (yield from __pool) as conn:
-        cur = yield from conn.cursor(aiomysql.DictCursor)
-        yield from cur.execute(sql.replace('?', '%s'), args or ())
-        if size:
-            rs = yield from cur.fetchmany(size)
-        else:
-            rs = yield from cur.fetchall()
-        yield from cur.close()
+    async with __pool.get() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute(sql.replace('?', '%s'), args or ())
+            if size:
+                rs = await cur.fetchmany(size)
+            else:
+                rs = await cur.fetchall()
         logging.info('rows returned: %s' % len(rs))
         return rs
 # 注意要始终坚持使用带参数的SQL，而不是自己拼接SQL字符串，这样可以防止SQL注入攻击
@@ -62,17 +67,21 @@ def select(sql, args, size=None):
 # 封装insert, update, delete
 # 要执行INSERT、UPDATE、DELETE语句，可以定义一个通用的execute()函数，
 # 因为这3种SQL的执行都需要相同的参数，以及返回一个整数表示影响的行数
-@asyncio.coroutine
-def execute(sql, args):
+async def execute(sql, args, autocommit=True):
     log(sql)
-    with (yield from __pool) as conn:
+    async with __pool.get() as conn:
+        if not autocommit:
+            await conn.begin()
         try:
-            cur = yield from conn.cursor()
-            yield from cur.execute(sql.replace('?', '%s'), args)
-            affected = cur.worcount
-            yield from cur.close()
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(sql.replace('?', '%s'), args)
+                affected = cur.rowcount
+            if not autocommit:
+                await conn.commit()
         except BaseException as e:
-            raise   # 上抛
+            if not autocommit:
+                await conn.rollback()
+            raise
         return affected
 # execute()函数和select()函数所不同的是，cursor对象不返回结果集，而是通过rowcount返回结果数
 
@@ -92,6 +101,8 @@ class Field(object):
         self.column_type = column_type
         self.primary_key = primary_key
         self.default = default
+        # 给Field增加一个default参数可以让ORM自己填入缺省值，
+        # 并且缺省值可以作为函数对象传入，如主键id的default是next_id()函数，在调用save()时自动计算
 
     def __str__(self):
         return '<%s, %s:%s>' % (self.__class__.__name__, self.column_type, self.name)

@@ -1,32 +1,41 @@
-from flask import Flask, request, render_template
-
-app = Flask(__name__)
-
-
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    return render_template('home.html')
+import threading
+from queue import Queue
+import copy
+import time
 
 
-@app.route('/signin', methods=['GET'])
-def signin_form():
-    return render_template('form.html')
+def job(l, q):
+    res = sum(l)
+    q.put(res)
 
 
-@app.route('/signin', methods=['POST'])
-def signin():
-    username = request.form['username']
-    password = request.form['password']
-    if username == 'admin' and password == 'password':
-        return render_template('sign-ok.html', username=username)
+def multithreading(l):
+    q = Queue()
+    threads = []
+    for i in range(4):
+        t = threading.Thread(target=job, args=(copy.copy(l), q), name='T%i' % i)
+        t.start()
+        threads.append(t)
+    [t.join() for t in threads]
+    total = 0
+    for _ in range(4):
+        total += q.get()
+    print(total)
 
-    else:  # 登录失败则还在form.html页面
-        return render_template('form.html', message='Bad username or password', username=username)
+
+def normal(l):
+    total = sum(l)
+    print(total)
+
 
 if __name__ == '__main__':
-    app.run()
-
-
+    l = list(range(10000000))
+    s_t = time.time()
+    normal(l*4)
+    print('normal: ', time.time() - s_t)
+    s_t = time.time()
+    multithreading(l)
+    print('threading: ', time.time() - s_t)
 
 
 
