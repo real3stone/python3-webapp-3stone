@@ -11,16 +11,8 @@ async def test(loop):
     await orm.create_pool(loop=loop, **db_dict)
     # 没有设置默认值的一个也不能少
     u = User(name='Test', email='stone@mail.com', passwd='123456', image='about:blank')
-    '''
-    u = User()
-    u.name = 'Test'
-    u.email = 'stone@foxmail.com'
-    u.passwd = '123456'
-    u.image = 'about:blank'
-    u.id = '123'
-    '''
     await u.save()
-    await orm.destroy_pool()  # test结束，关闭mysql连接池
+    await orm.destroy_pool()  # test结束，关闭mysql连接池 否则会报错
 '''
 # 插入User对象（不要重复插入同一email，因为它是unique key）
 

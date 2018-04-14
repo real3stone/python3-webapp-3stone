@@ -5,10 +5,10 @@
 Models for user, blog, comment.
 '''
 
-__author__ = 'Michael Liao'
+__author__ = '3stone'
 
-import time, uuid
-
+import time
+import uuid
 from orm import Model, StringField, BooleanField, FloatField, TextField
 
 

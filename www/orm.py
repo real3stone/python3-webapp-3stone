@@ -17,7 +17,7 @@ import logging; logging.basicConfig(level=logging.INFO)
 import asyncio, os, json, time
 
 
-# 廖大部分代码没有粘在教程里； 记录日志？？
+# 廖大部分代码没有粘在教程里； 记录对数据库的操作日志？？
 def log(sql, args=()):
     logging.info('SQL: %s' % sql)
 
@@ -41,6 +41,7 @@ async def create_pool(loop, **kw):
 
 
 # 关闭连接池（根据讨论自加）
+# 不加会报错：Event Loop is closed
 async def destroy_pool():
     global __pool
     if __pool is not None:
@@ -69,24 +70,24 @@ async def select(sql, args, size=None):
 # 因为这3种SQL的执行都需要相同的参数，以及返回一个整数表示影响的行数
 async def execute(sql, args, autocommit=True):
     log(sql)
-    async with __pool.get() as conn:
+    async with __pool.get() as conn:   # 从线程池中获取一个线程，命名为conn(R:with语法->IO)
         if not autocommit:
             await conn.begin()
         try:
             async with conn.cursor(aiomysql.DictCursor) as cur:
                 await cur.execute(sql.replace('?', '%s'), args)
-                affected = cur.rowcount
+                affected = cur.rowcount  # 行数
             if not autocommit:
                 await conn.commit()
         except BaseException as e:
             if not autocommit:
                 await conn.rollback()
             raise
-        return affected
+        return affected  # 返回行数
 # execute()函数和select()函数所不同的是，cursor对象不返回结果集，而是通过rowcount返回结果数
 
 
-# 什么函数？作用？
+# 什么函数？ 创建参数字符串？
 def create_args_string(num):
     L = []
     for n in range(num):
@@ -191,7 +192,7 @@ class Model(dict, metaclass=ModelMetaclass):
 
     # 【构造方法】:当实例被初始化时被调用。注意名字前后的双下划线，这是表明这个属
     # 性或方法对Python有特殊意义，但是允许用户自行定义。你自己取名时不应该用这种格式
-    def __init__(self, **kw):  # ？？？？
+    def __init__(self, **kw):
         super(Model, self).__init__(**kw)
 
     def __getattr__(self, key):
@@ -209,10 +210,11 @@ class Model(dict, metaclass=ModelMetaclass):
 
     def getValueOrDefault(self, key):
         value = getattr(self, key, None)
-        if value is None:
+        if value is None:  # key没有对应值
             field = self.__mappings__[key]
             if field.default is not None:
-                value = field.default() if callable(field.default) else field.default
+                value = field.default() if callable(field.default) else field.default  # ？？
+                # 记录日志：返回了默认值
                 logging.debug('using default value for %s: %s' % (key, str(value)))
                 setattr(self, key, value)
         return value
@@ -220,6 +222,8 @@ class Model(dict, metaclass=ModelMetaclass):
     @classmethod   # 【类方法】:被所有此类的实例所共用，第一个参数cls就是这个<类 对象>
     async def findAll(cls, where=None, args=None, **kw):
         ' find objects by where clause. '
+
+        # 根据where条件 和 可变参数kw 拼接出sql语句
         sql = [cls.__select__]
         if where:
             sql.append('where')
@@ -241,6 +245,7 @@ class Model(dict, metaclass=ModelMetaclass):
                 args.extend(limit)
             else:
                 raise ValueError('Invalid limit value: %s' % str(limit))
+        # 执行sql语句
         rs = await select(' '.join(sql), args)
         return [cls(**r) for r in rs]
 
@@ -254,21 +259,26 @@ class Model(dict, metaclass=ModelMetaclass):
         rs = await select(' '.join(sql), args, 1)
         if len(rs) == 0:
             return None
-        return rs[0]['_num_']
+        return rs[0]['_num_']  # 返回数量
 
     @classmethod
     async def find(cls, pk):
         ' find object by primary key. '
+        # 拼接出select()函数需要的参数
         rs = await select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
         return cls(**rs[0])
 
     async def save(self):
+        # 把Model实例的属性组成list，作为参数传入execute()方法，即插入数据库
+
+        # map()函数：把从fields中得到除主键外的每个属性名，传入geValueOrDefault()函数得到具体值
         args = list(map(self.getValueOrDefault, self.__fields__))
-        args.append(self.getValueOrDefault(self.__primary_key__))
+        args.append(self.getValueOrDefault(self.__primary_key__))  # list中补充主键
+        # 这里的__insert__,应该是metaclass映射过来的
         rows = await execute(self.__insert__, args)
-        if rows != 1:
+        if rows != 1:                                    # 判断是否 插入成功
             logging.warn('failed to insert record: affected rows: %s' % rows)
 
     async def update(self):
@@ -279,7 +289,7 @@ class Model(dict, metaclass=ModelMetaclass):
             logging.warn('failed to update by primary key: affected rows: %s' % rows)
 
     async def remove(self):
-        args = [self.getValue(self.__primary_key__)]
+        args = [self.getValue(self.__primary_key__)]  # 删除只用获取主键即可
         rows = await execute(self.__delete__, args)
         if rows != 1:
             logging.warn('failed to remove by primary key: affected rows: %s' % rows)
