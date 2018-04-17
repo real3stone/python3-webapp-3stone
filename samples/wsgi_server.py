@@ -1,4 +1,6 @@
 # 【WSGI：web service gateway interface】练习
+# Python内置了一个WSGI服务器，这个模块叫<wsgiref>，
+# 它是用纯Python编写的WSGI服务器的参考实现
 
 
 # server部分代码
