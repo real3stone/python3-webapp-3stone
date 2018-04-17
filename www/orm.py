@@ -195,13 +195,13 @@ class Model(dict, metaclass=ModelMetaclass):
     def __init__(self, **kw):
         super(Model, self).__init__(**kw)
 
-    def __getattr__(self, key):
+    def __getattr__(self, key):   # 获取属性key的值
         try:
             return self[key]
         except KeyError:
             raise AttributeError(r"'Model' object has no attibute '%s'" % key)
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key, value):   # 设置属性key的值
         self[key] = value
 
     # 【实例方法】:第一个参数总是self，就是这个实例对象

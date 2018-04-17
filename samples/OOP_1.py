@@ -26,7 +26,7 @@ class Student(object):
 	def __init__(self, name, score):
 		self.name  = name
 		self.score = score
-		self.__privateName  # private
+		# self.__privateName  # private
 	
 	def get_grade(self):
 		if self.score >= 90:
@@ -57,19 +57,19 @@ print(bart.name, bart.get_grade())
 
 # 访问限制-作业
 class Student_ex(object):
-    def __init__(self, name, gender):
-        self.name = name
-        self.__gender = gender
-		
-    def get_gender(self):
-        return self.__gender
-		
-    def set_gender(self, gender):
-        if gender in ['male', 'female']:
-            self.__gender = gender
-        else:
-            raise TypeError('bad gender')
 
+	def __init__(self, name, gender):
+		self.name = name
+		self.__gender = gender
+
+	def get_gender(self):
+		return self.__gender
+
+	def set_gender(self, gender):
+		if gender in ['male', 'female']:
+			self.__gender = gender
+		else:
+			raise TypeError('bad gender')
 
 
 # -----------------------多态------------------------
