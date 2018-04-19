@@ -24,7 +24,7 @@ class Student(object):
 	# 有了__init__方法，在创建实例的时候，就不能传入空的参数了，
 	# 必须传入与__init__方法匹配的参数
 	def __init__(self, name, score):
-		self.name  = name
+		self.name = name
 		self.score = score
 		# self.__privateName  # private
 	

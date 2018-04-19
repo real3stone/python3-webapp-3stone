@@ -30,13 +30,15 @@ class ModelMetaclass(type):
     1、排除掉对Model类的修改
     2、在当前类中（比如 User）中查找定义的类的所有属性，如果找到一个Field属性，
         就把他保存到一个__mappings__的dict中，同时从类属性中删除该Field属性
-    3、把表名保存到__table__中
+    3、把表名保存到__table__中，如果还有其他属性同样如此保存
     '''
 
     def __new__(cls, name, bases, attrs):
+
         if name == 'Model':   # 排除掉对Model类的修改
             return type.__new__(cls, name, bases, attrs)
         print('Found model: %s' % name)
+
         mappings = dict()
         for k, v in attrs.items():  # 在当前类(User)中查找定义的类的所有属性
             if isinstance(v, Field):   # 如果找到一个Field属性，就把他保存到一个__mappings__的dict中
@@ -44,10 +46,10 @@ class ModelMetaclass(type):
                 mappings[k] = v
         for k in mappings.keys():  # 找到的同时，从类属性中删除该Field属性
             attrs.pop(k)
-
         attrs['__mappings__'] = mappings  # 保存刚查找到的 属性和列的关系
         attrs['__table__'] = name  # 把表名保存到__table__中(假设表名和类名一致)
-        return type.__new__(cls, name, bases, attrs)
+        # type可以实现运行期动态创建类
+        return type.__new__(cls, name, bases, attrs)  # ？？？
 
 
 # 基类 Model
@@ -75,7 +77,7 @@ class Model(dict, metaclass=ModelMetaclass):
             params.append('?')  # 参数值(就是'?'组成的list)
             args.append(getattr(self, k, None))    # 取出Model的属性值
         sql = 'insert into %s (%s) values (%s)' % (self.__table__, ','.join(fields), ','.join(params))
-        # 复习sql语法
+        # 此处因为没有连接数据库，所以没有执行sql语句，只是打印出来了
         print('SQL: %s' % sql)
         print('ARGS: %s' % str(args))
 
