@@ -1,6 +1,6 @@
 # 【异步IO - Python库asyncio】用sleep()模拟IO操作
 
-# asyncio是Python的标准库，编程模型为一个消息循环
+# asyncio是Python的标准库，编程模型为一个消息循环(EventLoop)
 # 从asyncio模块中直接获取一个EventLoop的应用，
 # 然后把需要执行的协程扔EventLoop中执行，就实现了异步IO
 import asyncio
@@ -8,7 +8,7 @@ import threading
 
 
 # 用asyncio实现hello world 并发
-@asyncio.coroutine  # 把一个generator标记为coroutine类型，然后把这个coroutine扔到EventLoop中
+@asyncio.coroutine  # 把一个generator标记为coroutine类型(装饰器)，装饰器作用是把这个coroutine扔到EventLoop中
 def hello(n):
     print('Hello world - %s! (%s)' % (n, threading.current_thread()))
     # 异步调用asyncio.sleep(1):
@@ -20,7 +20,7 @@ def hello(n):
     print('Hello  again - %s! (%s)' % (n, threading.current_thread()))
 
 # 把asyncio.sleep(1)看成是一个耗时1秒的IO操作，在此期间，主线程并未等待，
-# 而是去执行EventLoop中其他可以执行的coroutine了，因此可以实现并发执行
+# 而是去执行 EventLoop中 其他可以执行的coroutine了，因此可以实现并发执行
 
 # 获取EventLoop：
 loop = asyncio.get_event_loop()

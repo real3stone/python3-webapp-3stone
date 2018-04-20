@@ -1,4 +1,5 @@
-<!--登录表单的模板-->
+<!--MVC : View-->
+<!--登录表单的模板 使用Jinja2模板-->
 <!--在Jinja2模板中，我们用{{ name }}表示一个需要替换的变量-->
 <!--很多时候，还需要循环、条件判断等指令语句，在Jinja2中，用{ % ... % }表示指令-->
 <!--注：注释里的指令格式也会被解析出来，导致出错，我有意加了空格-->
@@ -10,7 +11,7 @@
 </head>
 <body>
     {% if message %}
-    <p style="color:red">{{message}}</p>
+    <p style="color:red">{{message}}</p>   <!--打印传入的错误信息-->
     {% endif %}
     <form action="/signin" method="post">
         <legend>Please sign in:</legend>

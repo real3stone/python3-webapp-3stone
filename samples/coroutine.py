@@ -19,10 +19,10 @@
 # 分为两步执行：(以yield为例)
 # 1、yield 先传值到send()挂起的地方，yield挂起，
 # 2、等send()执行一次循环后返回，yield再执行其后的代码
-# 3、知道又到yield，回步骤1
+# 3、直到又到yield，回步骤1
 
 
-# 此函数时一个generator
+# 此函数是一个generator
 def consumer():
     r = ''
     while True:

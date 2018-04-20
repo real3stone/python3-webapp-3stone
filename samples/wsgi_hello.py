@@ -4,7 +4,8 @@
 # 其实一个web app可以理解为就是写一个WSGI的处理函数
 
 # WSGI接口实现非常简单，只需要开发者实现一个函数即可响应HTTP请求
-# 无论多么复杂的Web应用程序，入口都是一个WSGI处理函数。
+# 无论多么复杂的Web应用程序，入口都是一个WSGI处理函数
+
 # HTTP请求的所有输入信息都可以通过environ获得，
 # HTTP响应的输出都可以通过start_response()加上函数返回值作为Body。
 
@@ -18,12 +19,10 @@ def application(environ, start_response):
     start_response('200 OK', [('Content-Type', 'text/html')])
     # 从environ中读取PATH_INFO，默认值为web
     body = '<h1>Hello, %s!</h1>' % (environ['PATH_INFO'][1:] or 'web')
-    # print('-------------------------------------------')
-    print(environ)
-    # print('-------------------------------------------')
-    return [body.encode('utf-8')]
+    return [body.encode('utf-8')]   # 解析中文编码
 
-# 有了WSGI，我们关心的是如何从environ这个dict对象拿到HTTP请求信息，
+
+# 有了WSGI，我们关心的是：如何从environ这个dict对象拿到HTTP请求信息，
 # 然后构造HTML，通过start_response()发送Header，最后返回Body
 
 # 整个application()函数没有涉及任何解析HTTP的部分，即底层代码不需要我们编写

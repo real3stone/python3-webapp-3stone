@@ -4,7 +4,7 @@
 # 但和Web App的处理逻辑比，还是比较低级，我们需要在WSGI接口之上能进一步抽象，
 # 让我们专注于用一个函数处理一个URL，至于<URL 到 函数的映射>，就交给Web框架来做
 
-# Flask通过Python的<装饰器>在内部自动地把URL和函数关联起来
+# Flask通过Python的<装饰器decorator>在内部自动地把URL和函数关联起来
 
 
 # 处理3个URL：
@@ -19,6 +19,7 @@ from flask import request
 app = Flask(__name__)   # 定义一个flask框架对象
 
 
+# app.route()--框架结构，装饰器实现url与函数映射（即装饰器如何定义不用考虑，只需记住接口即可）
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return '<h1>Home</h1>'
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     app.run()
 
 
-# 有了Web框架，我们在编写Web应用时，注意力就从<WSGI处理函数>转移到<URL+对应的处理函数>
+# 有了Web框架，我们在编写Web应用时，注意力就从<WSGI处理函数>转移到<URL+对应的处理函数>（不用编写URL与处理函数之间的映射->装饰器）
 # 在编写URL处理函数时，除了配置URL外，从HTTP请求拿到用户数据也是非常重要的。
 # Web框架都提供了自己的API来实现这些功能。【Flask】通过request.form['name']来获取表单的内容
 
