@@ -17,7 +17,7 @@ import logging; logging.basicConfig(level=logging.INFO)
 import asyncio, os, json, time
 
 
-# 廖大部分代码没有粘在教程里； 记录对数据库的操作日志？？
+# 记录对数据库的操作日志
 def log(sql, args=()):
     logging.info('SQL: %s' % sql)
 
@@ -86,8 +86,8 @@ async def execute(sql, args, autocommit=True):
         return affected  # 返回行数
 # execute()函数和select()函数所不同的是，cursor对象不返回结果集，而是通过rowcount返回结果数
 
-
-# 什么函数？ 创建参数字符串？
+# hi
+# 构造sql语句需要的字符串: (?,?,?,?,?)
 def create_args_string(num):
     L = []
     for n in range(num):

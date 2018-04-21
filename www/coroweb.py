@@ -164,7 +164,7 @@ class RequestHandler(object):
             return dict(error=e.error, data=e.data, message=e.message)
 
 
-# ?????
+# 加入静态页面，原始页面？?????
 def add_static(app):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app.router.add_static('/static/', path)
@@ -185,7 +185,7 @@ def add_route(app, fn):
     app.router.add_route(method, path, RequestHandler(app, fn))
 
 
-# 自动把 module_name模块 中所有符合条件的函数都注册了
+# 自动把参数 module_name模块 中所有符合条件的函数都注册了
 def add_routes(app, module_name):
     n = module_name.rfind('.')  # rfind 返回字符串最后出现的位置，匹配失败返回-1
     if n == (-1):  # __import__：运行时动态加载模块，返回属性和方法列表 or 模块？关键要和else中的mod对应哪
@@ -196,11 +196,11 @@ def add_routes(app, module_name):
     for attr in dir(mod):         # dir(): 获取mod的 属性和方法 列表
         if attr.startswith('_'):   # 对'_'开头的不操作
             continue
-        fn = getattr(mod, attr)   # 获取attr代指的方法
-        if callable(fn):          # 判断是否可调用（即 是否为函数）
+        fn = getattr(mod, attr)   # 获取attr代指的 方法
+        if callable(fn):          # 判断是否可调用（即 是否是函数，错，是否定义了__call__()函数）
             method = getattr(fn, '__method__', None)
             path = getattr(fn, '__route__', None)
-            if method and path:
+            if method and path:    # method & path都存在
                 add_route(app, fn)  # 加入URL
 
 
