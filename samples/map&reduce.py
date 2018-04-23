@@ -1,7 +1,8 @@
 # 【map/reduce】练习
 
 # map(func， iterable):
-# 把<函数func>作用到<序列iterable>中的每一个元素上
+# 把<函数func>作用到<序列iterable>中的每一个元素上，
+# 返回该map对象，需要list(map)转化为列表类型实例
 
 # reduce(func, iterable):
 # 不同于map(), reduce()把每次func()的返回结果和序列iterable的下一个元素做累加运算

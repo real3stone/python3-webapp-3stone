@@ -38,6 +38,7 @@ def merge(defaults, override):
     return r
 
 
+# ?? 递归转化为dict？
 def toDict(d):
     D = Dict()
     for k, v in d.items():

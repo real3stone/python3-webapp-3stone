@@ -1,7 +1,6 @@
 # 【web框架】
 
-# 由于我们的Web app建立在asyncio的基础上，因此用aiohttp写一个基本的app.py
-
+# 由于我们的Web app建立在asyncio的基础上
 
 import logging; logging.basicConfig(level=logging.INFO)
 
@@ -115,6 +114,7 @@ async def response_factory(app, handler):
 
 # 有了这些基础设施，我们就可以专注地往handler模块中添加URL处理函数了,可以极大提高效率
 
+# ------------------------------------------------------------------------
 # 时间过滤
 def datetime_filter(t):
     delta = int(time.time() - t)
@@ -136,7 +136,7 @@ async def init(loop):
     app = web.Application(loop=loop, middlewares=[
                             logger_factory, response_factory
                           ])
-    init_jinja2(app, filters=dict(datatime=datetime_filter))  # 初始化jinja2模板
+    init_jinja2(app, filters=dict(datetime=datetime_filter))  # 初始化jinja2模板
     add_routes(app, 'handlers')  # 把handles模块中URL都加入进来
     add_static(app)
     srv = await loop.create_server(app.make_handler(), '127.0.0.1', 9000)
@@ -147,7 +147,6 @@ async def init(loop):
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop))
 loop.run_forever()
-
 
 
 

@@ -25,7 +25,7 @@ def log(sql, args=()):
 # 创建连接池
 async def create_pool(loop, **kw):
     logging.info('create database connection pool...')
-    global __pool
+    global __pool   # 全局变量__pool存储连接池
     __pool = await aiomysql.create_pool(
         host=kw.get('host', 'localhost'),
         port=kw.get('port', 3306),
@@ -40,8 +40,7 @@ async def create_pool(loop, **kw):
     )
 
 
-# 关闭连接池（根据讨论自加）
-# 不加会报错：Event Loop is closed
+# 关闭连接池（根据讨论自加，不加会报错：Event Loop is closed）
 async def destroy_pool():
     global __pool
     if __pool is not None:
@@ -53,9 +52,9 @@ async def destroy_pool():
 async def select(sql, args, size=None):
     log(sql, args)
     global __pool
-    async with __pool.get() as conn:
+    async with __pool.get() as conn:  # with 打开（代替try...execept...简化代码）
         async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(sql.replace('?', '%s'), args or ())
+            await cur.execute(sql.replace('?', '%s'), args or ())  # sql语句的占位符是'?',mysql的占位符是'%s',替换
             if size:
                 rs = await cur.fetchmany(size)
             else:
@@ -75,7 +74,7 @@ async def execute(sql, args, autocommit=True):
             await conn.begin()
         try:
             async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(sql.replace('?', '%s'), args)
+                await cur.execute(sql.replace('?', '%s'), args)  # sql语句的占位符是'?',mysql的占位符是'%s',替换
                 affected = cur.rowcount  # 行数
             if not autocommit:
                 await conn.commit()
@@ -86,7 +85,7 @@ async def execute(sql, args, autocommit=True):
         return affected  # 返回行数
 # execute()函数和select()函数所不同的是，cursor对象不返回结果集，而是通过rowcount返回结果数
 
-# hi
+
 # 构造sql语句需要的字符串: (?,?,?,?,?)
 def create_args_string(num):
     L = []
@@ -137,7 +136,7 @@ class TextField(Field):
         super().__init__(name, 'text', False, default)
 
 
-# Model只是一个基类，如何将具体的子类如User的映射信息读取出来呢？通过metaclass：ModelMetaclass
+# Model只是一个基类，如何将具体的子类如User的映射信息读取出来呢？通过metaclass
 class ModelMetaclass(type):
 
     def __new__(cls, name, bases, attrs):
@@ -152,7 +151,7 @@ class ModelMetaclass(type):
 
         # 获取所有的Field和主键名：
         mappings = dict()
-        fields = []
+        fields = []  # 保存属性名的列表？
         primaryKey = None
         for k, v in attrs.items():
             if isinstance(v, Field):
@@ -169,12 +168,14 @@ class ModelMetaclass(type):
             raise RuntimeError('Primary key no found.')
         for k in mappings.keys():
             attrs.pop(k)
+        # 给fields中保存的每个属性名加上'``'后，变成列表格式（mysql中`id`是查询时列的格式，但自己尝试貌似不佳``也可以查询哪）
         escaped_fields = list(map(lambda f: '`%s`' % f, fields))
         attrs['__mappings__'] = mappings  # 保存属性和列的映射关系
         attrs['__table__'] = tableName
         attrs['__primary_key__'] = primaryKey  # 主键属性名
         attrs['__fields__'] = fields  # 除主键外的属性名
-        # 构造默认的select，insert，update和delete语句
+        # 构造默认的select，insert，update和delete 的sql语句
+        # 封装成Model类型的方法直接使用！
         attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ', '.join(escaped_fields), tableName)
         attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (
         tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
@@ -182,7 +183,8 @@ class ModelMetaclass(type):
         tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
         attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
         return type.__new__(cls, name, bases, attrs)
-        # 这样继承自Model的类会自动通过ModelMetaclass扫描映射关系，并存储到自身类属性如__table__, __mappings__中
+        # 这样继承自Model的类(eg:Users)会自动通过ModelMetaclass扫描映射关系，
+        # 并存储到自身类属性如__table__, __mappings__中
 
 
 # 首先定义所有ORM映射的基类
@@ -293,7 +295,6 @@ class Model(dict, metaclass=ModelMetaclass):
         rows = await execute(self.__delete__, args)
         if rows != 1:
             logging.warn('failed to remove by primary key: affected rows: %s' % rows)
-
 
 
 
