@@ -28,7 +28,7 @@ def init_jinja2(app, **kw):
         auto_reload=kw.get('auto_reload', True)
     )
     path = kw.get('path', None)  # 设置jinja2 templates路径
-    if path is None:    # 获取路径 D:\0code\python\python3-webapp-3stone\www\templates
+    if path is None:   # 获取路径 D:\0code\python\python3-webapp-3stone\www\templates
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     logging.info('set jinja2 templates path: %s' % path)
 

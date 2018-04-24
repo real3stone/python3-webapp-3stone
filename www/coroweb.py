@@ -85,7 +85,7 @@ def has_request_arg(fn):
                             % (fn.__name__, str(sig)))
     return found
 
-# ----------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 
 # URL处理函数不一定是一个coroutine，我们用RequestHandler()封装一个URL处理函数
 
@@ -104,16 +104,16 @@ class RequestHandler(object):
         self._named_kw_args = get_named_kw_args(fn)
         self._required_kw_args = get_required_kw_args(fn)
 
-    # 虽然requestHandler()是一个类，但定义了__call__()方法，其实例就可被视为函数
+    # 虽然requestHandler()是一个类，但定义了__call__()方法，其实例就可被视为函数 调用
     async def __call__(self, request):
-        kw = None  #
+        kw = None  # 保存属性参数
         if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
 
             if request.method == 'POST':
                 if not request.content_type:
                     return web.HTTPBadRequest('Missing Content-Type.')
                 ct = request.content_type.lower()
-                if ct.startswith('application/json'):
+                if ct.startswith('application/json'):   # json格式
                     params = await request.json()
                     if not isinstance(params, dict):
                         return web.HTTPBadRequest('JSON body must be object.')
@@ -164,7 +164,7 @@ class RequestHandler(object):
             return dict(error=e.error, data=e.data, message=e.message)
 
 
-# 加入静态页面，原始页面？?????
+# 加入静态页面(放置CSS框架)
 def add_static(app):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app.router.add_static('/static/', path)

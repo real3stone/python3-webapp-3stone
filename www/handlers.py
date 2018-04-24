@@ -17,3 +17,12 @@ async def index(request):
     }
 
 
+@get('/3stone')
+async def test_1(request):
+    users = await User.findNum('name')
+    return {
+        '__template__': 'test.html',
+        'users': users
+    }
+
+
