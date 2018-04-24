@@ -6,7 +6,9 @@ Best wishes!
 > python 3.5.3rc1
 * 异步框架 
 > 异步aiohttp
-* 前端模板引擎
+* 数据库
+> MYSQL (异步驱动框架 aiomysql)
+* 前端模板引擎  
 > jinja2
 * 版本控制
 > Git
