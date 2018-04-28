@@ -26,6 +26,7 @@ def log(sql, args=()):
 async def create_pool(loop, **kw):
     logging.info('create database connection pool...')
     global __pool   # 全局变量__pool存储连接池
+    # 使用mysql异步驱动模块：aiomysql
     __pool = await aiomysql.create_pool(
         host=kw.get('host', 'localhost'),
         port=kw.get('port', 3306),
@@ -139,7 +140,7 @@ class TextField(Field):
 # Model只是一个基类，如何将具体的子类如User的映射信息读取出来呢？通过metaclass
 class ModelMetaclass(type):
 
-    def __new__(cls, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):  # 初始化一个新的model实例
 
         # 排除Model类本身
         if name == 'Model':
@@ -153,8 +154,9 @@ class ModelMetaclass(type):
         mappings = dict()
         fields = []  # 保存属性名的列表？
         primaryKey = None
+
         for k, v in attrs.items():
-            if isinstance(v, Field):
+            if isinstance(v, Field):  # Field算是什么类别呢？映射字符、数字等数据的格式
                 logging.info(' found mapping: %s ==> %s' % (k, v))
                 mappings[k] = v
                 if v.primary_key:
@@ -164,6 +166,7 @@ class ModelMetaclass(type):
                     primaryKey = k
                 else:
                     fields.append(k)
+
         if not primaryKey:
             raise RuntimeError('Primary key no found.')
         for k in mappings.keys():

@@ -8,7 +8,7 @@ from aiohttp import web
 from apis import APIError
 
 
-# 装饰器： 把一个函数映射为一个URL处理函数，这样一个函数通过@get修饰就附带了url信息
+# 装饰器：(功能)把一个函数映射为一个URL处理函数，这样一个函数通过@get修饰就附带了url信息
 def get(path):
     '''
     Define decorator @get('/path')
@@ -38,7 +38,39 @@ def post(path):
 
 
 # --------------------------------------------------------------
-def get_required_kw_args(fn):
+# 以下五个函数都服务于requestHandler(), 用于检查、获取函数fn()的参数
+
+def has_request_arg(fn):  # 检查是否有 request 参数
+    sig = inspect.signature(fn)
+    params = sig.parameters
+    found = False
+    for name, param in params.items():
+        if name == 'request':
+            found = True
+            continue
+        if found and (param.kind != inspect.Parameter.VAR_POSITIONAL
+                      and param.kind != inspect.Parameter.KEYWORD_ONLY
+                      and param.kind != inspect.Parameter.VAR_KEYWORD):
+            raise ValueError('request parameter must be the last named parameter in function: %s%s'
+                            % (fn.__name__, str(sig)))
+    return found
+
+
+def has_named_kw_args(fn):  # 检查函数fn()的参数中是否有KEYWORD_ONLY类型？
+    params = inspect.signature(fn).parameters
+    for name, param in params.items():
+        if param.kind == inspect.Parameter.KEYWORD_ONLY:
+            return True
+
+
+def has_var_kw_arg(fn):     # 检查函数fn()的参数中是否有VAR_KEYWORD类型？
+    params = inspect.signature(fn).parameters
+    for name, param in params.items():
+        if param.kind == inspect.Parameter.VAR_KEYWORD:
+            return True
+
+
+def get_required_kw_args(fn):   # 获取kind = KEYWORD_ONLY 的参数
     args = []
     params = inspect.signature(fn).parameters
     for name, param in params.items():
@@ -56,36 +88,7 @@ def get_named_kw_args(fn):
     return tuple(args)
 
 
-def has_named_kw_args(fn):
-    params = inspect.signature(fn).parameters
-    for name, param in params.items():
-        if param.kind == inspect.Parameter.KEYWORD_ONLY:
-            return True
-
-
-def has_var_kw_arg(fn):
-    params = inspect.signature(fn).parameters
-    for name, param in params.items():
-        if param.kind == inspect.Parameter.VAR_KEYWORD:
-            return True
-
-
-def has_request_arg(fn):
-    sig = inspect.signature(fn)
-    params = sig.parameters
-    found = False
-    for name, param in params.items():
-        if name == 'request':
-            found = True
-            continue
-        if found and (param.kind != inspect.Parameter.VAR_POSITIONAL
-                      and param.kind != inspect.Parameter.KEYWORD_ONLY
-                      and param.kind != inspect.Parameter.VAR_KEYWORD):
-            raise ValueError('request parameter must be the last named parameter in function: %s%s'
-                            % (fn.__name__, str(sig)))
-    return found
-
-# -----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # URL处理函数不一定是一个coroutine，我们用RequestHandler()封装一个URL处理函数
 
@@ -107,6 +110,7 @@ class RequestHandler(object):
     # 虽然requestHandler()是一个类，但定义了__call__()方法，其实例就可被视为函数 调用
     async def __call__(self, request):
         kw = None  # 保存属性参数
+        # 含有任意一种参数的前提下，判断其request类型
         if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
 
             if request.method == 'POST':
@@ -164,7 +168,7 @@ class RequestHandler(object):
             return dict(error=e.error, data=e.data, message=e.message)
 
 
-# 加入静态页面(放置CSS框架)
+# 加入静态文件 (如CSS框架等)
 def add_static(app):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app.router.add_static('/static/', path)
@@ -177,12 +181,12 @@ def add_route(app, fn):
     path = getattr(fn, '__route__', None)
     if path is None or method is None:
         raise ValueError('@get or @post not defined in %s.' % str(fn))
-    # 判断是否为协程？？
+    # 判断是否为协程 或 生成器(inspect.isgeneratorfunction()函数查看函数类型是否为生成器)
     if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
-        fn = asyncio.coroutine(fn)
+        fn = asyncio.coroutine(fn)  # 若不是，装饰为一个协程
     logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__,
                                                 ', '.join(inspect.signature(fn).parameters.keys())))
-    app.router.add_route(method, path, RequestHandler(app, fn))
+    app.router.add_route(method, path, RequestHandler(app, fn))  # aiohttp.web的方法
 
 
 # 自动把参数 module_name模块 中所有符合条件的函数都注册了

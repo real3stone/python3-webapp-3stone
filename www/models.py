@@ -29,6 +29,7 @@ class User(Model):
     created_at = FloatField(default=time.time)
     # 日期和时间：以字符串类型存储，而非datetime类型，好处是不必关心数据库的时区和时区转换问题
     # 排序非常简单，输出时只需做一次float和str的类型转换即可
+    # ddl属性是什么含义？？？
 
 
 class Blog(Model):
