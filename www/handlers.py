@@ -6,7 +6,7 @@
 import re, time, json, logging, hashlib, base64, asyncio
 from coroweb import get, post
 from models import User, Comment, Blog, next_id
-from apis import APIError, APIValueError, APIResourceNotFoundError
+from apis import APIError, APIValueError, APIResourceNotFoundError, APIPermissionError
 
 
 from aiohttp import web
@@ -15,6 +15,24 @@ from config import configs
 
 COOKIE_NAME = 'awesession'
 _COOKIE_KEY = configs.session.secret
+
+
+# 检查登录状态？
+def check_admin(request):
+    if request.__user__ is None or not request.__user__.admin:
+        raise APIPermissionError()
+
+
+# 获取页面的什么参数？页码？？
+def get_page_index(page_str):
+    p = 1
+    try:
+        p = int(page_str)
+    except ValueError as e:
+        pass
+    if  p < 1:
+        p = 1
+    return p
 
 
 # 计算加密cookie
@@ -166,8 +184,52 @@ async def authenticate(*, email, passwd):
     return r
 
 
+@get('/api/blogs')
+async def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = await Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = await Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
 
 
+# 创建Blog的api
+@post('/aip/blogs')
+async def api_create_blog(request, *, name, summary, content):
+    check_admin(request)
+    if not name or not name.strip():
+        raise APIValueError('name', 'name cannot be empty.')
+    if not summary or not summary.strip():
+        raise APIValueError('summary', 'summary cannot be empty.')
+    if not content or not content.strip():
+        raise APIValueError('content', 'content cannot be empty.')
+
+    blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name,
+                user_image=request.__user__.image, name=name.strip(),
+                summary=summary.strip(), content=content.strip(), )
+    await blog.save()
+    return blog
+
+
+# 管理日志页面
+@get('/manage/blogs')
+def manage_blogs(*, page='1'):
+    return {
+        '__templating__': 'manage.html',
+        'page_index': get_page_index(page)
+    }
+
+
+# 创建blog的页面
+@get('/manage/blogs/create')
+async def manage_create_blog():
+    return {
+        '__templating__': 'blogs.html',
+        'id': '',
+        'action': '/api/blogs'
+    }
 
 
 
